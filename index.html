@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>天氣日曆</title>
+    <meta
+      name="description"
+      content="天氣app｜日曆感極簡設計｜精選臺灣圖照｜未來天氣預報"
+    />
+    <link rel="icon" type="image/x-icon" href="./assets/images/sun.svg" />
+    <meta
+      property="og:image"
+      content="https://upload.cc/i1/2022/07/22/fOZp2C.png"
+    />
+    <link rel="stylesheet" href="./assets/css/style.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="./assets/javascript/countyApi.js"></script>
+    <script src="./assets/javascript/script.js" defer></script>
+  </head>
+  <body>
+    <div class="card">
+      <div class="logo_container" id="logo_pad">
+        <p>天氣日曆</p>
+        <hr />
+      </div>
+
+      <div class="main_container">
+        <div class="logo_container" id="logo_web">
+          <p>天氣日曆</p>
+          <hr />
+        </div>
+        <div class="name_container">
+          <div id="locationCounty">
+            <select id="theCountySelect"></select>
+          </div>
+          <div id="locationVillage">
+            <select id="theVillageSelect"></select>
+          </div>
+          <div class="date_container"></div>
+        </div>
+        <div class="weather_container"></div>
+      </div>
+
+      <div class="detail_container">
+        <div class="picture_container">
+          <div class="picture"></div>
+        </div>
+        <div class="week_container">
+          <div class="futureTitle_container">
+            <p>未來5日天氣</p>
+            <hr />
+          </div>
+          <div class="daily_container"></div>
+          <div class="temperature_container">
+            <div class="temperature_line"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
