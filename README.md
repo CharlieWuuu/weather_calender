@@ -1,8 +1,6 @@
 天氣日曆
 
-https://charliewuuu.github.io/weather_calender/
-
-以「日曆/月曆」發想設計，網址見此：
+以「日曆/月曆」發想設計，網址見此：https://charliewuuu.github.io/weather_calender/
 
 使用者打開後會顯示所在地的當下氣溫、天氣，以及未來5日天氣
 
