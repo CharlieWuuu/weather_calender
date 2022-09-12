@@ -29,13 +29,11 @@ var option = {
   timeout: 600000,
 };
 navigator.geolocation.getCurrentPosition(successCallback, error);
-
-// if did't get user's geolocation
 function error() {
   getCwbApi('063', '信義區');
 }
 
-// if got user's geolocation
+// check the client's county & town
 function successCallback(position) {
   x = position;
   getLocation =
@@ -44,11 +42,6 @@ function successCallback(position) {
     '/' +
     position.coords.latitude +
     '/4326';
-  getApiCode(getLocation);
-}
-
-// check the apiCode
-function getApiCode(getLocation) {
   $.getJSON(getLocation).done(function (clientLocation) {
     for (c = 0; c < countyApi.length; c++) {
       if (clientLocation.ctyName == countyApi[c].name) {
@@ -61,7 +54,7 @@ function getApiCode(getLocation) {
   });
 }
 
-// get the target API
+// get the weather API
 function getCwbApi(clientCountyCode, clientLocationTown) {
   $.getJSON(
     'https://opendata.cwb.gov.tw/api/v1/rest/datastore/F-D0047-093?Authorization=CWB-C67AAE13-37AA-4F9D-892F-E25483690887&locationId=F-D0047-' +
@@ -247,23 +240,22 @@ function weatherSwitch(thisWx) {
       <path d="M30.6,15.1c0,3.8-3.1,6.9-6.9,6.9c-1.4,0-2.7-0.4-3.9-1.2c-2.5,2.9-6.8,3.3-9.7,0.8l0,0
         c-3.5,1.4-7.6-0.3-9-3.9s0.3-7.6,3.9-9C4.9,8.3,4.9,7.9,4.9,7.5c0-3.8,3.1-6.9,6.9-6.9c1.9,0,3.7,0.8,5,2.2
         c1-0.6,2.2-0.9,3.4-0.9c3.8,0,6.9,3.1,6.9,6.9l0,0c0,0.1,0,0.2,0,0.3C29.3,10.3,30.6,12.6,30.6,15.1z" />
-  </svg>`;
+    </svg>`;
   } else {
     weatherIcon = `<svg class="weatherIcon"
-    id="IconRain"
-    xmlns="http://www.w3.org/2000/svg"
-    x="0px"
-    y="0px"
-    viewBox="0 0 31.4 28.7">
+      id="IconRain"
+      xmlns="http://www.w3.org/2000/svg"
+      x="0px"
+      y="0px"
+      viewBox="0 0 31.4 28.7">
 
-    <path class="st0" d="M30.6,15.2c0,3.8-3.2,7-7,7c-1.4,0-2.7-0.4-3.8-1.2c-2.5,3-6.9,3.3-9.9,0.8l0,0c-0.8,0.3-1.5,0.4-2.4,0.4
-      c-3.8,0-6.9-3.2-6.9-7.1c0-2.7,1.6-5.1,4.2-6.2C4.7,8.5,4.7,8.1,4.7,7.7c0-3.8,3.2-7,7-7c1.9,0,3.7,0.8,5,2.2
-      c1.1-0.7,2.3-1,3.5-1c3.8,0,6.9,3.1,7,6.9c0,0.1,0,0.2,0,0.3C29.3,10.4,30.6,12.7,30.6,15.2z"/>
-    <line class="line" id="line1" x1="7.2" y1="22.5" x2="4.8" y2="26"/>
-    <line class="line" id="line2" x1="14.9" y1="24.7" x2="12.5" y2="28.2"/>
-    <line class="line" id="line3" x1="23.6" y1="22.5" x2="21.2" y2="26"/>
-</svg>
-`;
+      <path class="st0" d="M30.6,15.2c0,3.8-3.2,7-7,7c-1.4,0-2.7-0.4-3.8-1.2c-2.5,3-6.9,3.3-9.9,0.8l0,0c-0.8,0.3-1.5,0.4-2.4,0.4
+        c-3.8,0-6.9-3.2-6.9-7.1c0-2.7,1.6-5.1,4.2-6.2C4.7,8.5,4.7,8.1,4.7,7.7c0-3.8,3.2-7,7-7c1.9,0,3.7,0.8,5,2.2
+        c1.1-0.7,2.3-1,3.5-1c3.8,0,6.9,3.1,7,6.9c0,0.1,0,0.2,0,0.3C29.3,10.4,30.6,12.7,30.6,15.2z"/>
+      <line class="line" id="line1" x1="7.2" y1="22.5" x2="4.8" y2="26"/>
+      <line class="line" id="line2" x1="14.9" y1="24.7" x2="12.5" y2="28.2"/>
+      <line class="line" id="line3" x1="23.6" y1="22.5" x2="21.2" y2="26"/>
+    </svg>`;
   }
 }
 
@@ -284,6 +276,26 @@ function temperatureRange() {
   distance = 70 / (MaxTemp - MinTemp); // get the class interval
 
   SVGline(MaxTempArray, MinTempArray, MaxTemp, MinTemp, distance);
+}
+
+// delete first day information
+function deleteFirstDay() {
+  y = 0;
+  for (x = 0; x < 5; x++) {
+    WxNowStartTime = Wx.time[x].startTime;
+    let todayDate =
+      now.getFullYear() +
+      '-' +
+      ('0' + (now.getMonth() + 1)).slice(-2) +
+      '-' +
+      ('0' + now.getDate()).slice(-2);
+    if (
+      JSON.stringify(WxNowStartTime).includes(todayDate) == true ||
+      JSON.stringify(WxNowStartTime).includes('00:00:00') == true
+    ) {
+      y++;
+    }
+  }
 }
 
 // render the number line of temperature
@@ -321,26 +333,6 @@ function SVGline(MaxTempArray, MinTempArray, MaxTemp, MinTemp, distance) {
     ></path>
   </svg>`;
   $('.temperature_line').append(print);
-}
-
-// delete first day information
-function deleteFirstDay() {
-  y = 0;
-  for (x = 0; x < 5; x++) {
-    WxNowStartTime = Wx.time[x].startTime;
-    let todayDate =
-      now.getFullYear() +
-      '-' +
-      ('0' + (now.getMonth() + 1)).slice(-2) +
-      '-' +
-      ('0' + now.getDate()).slice(-2);
-    if (
-      JSON.stringify(WxNowStartTime).includes(todayDate) == true ||
-      JSON.stringify(WxNowStartTime).includes('00:00:00') == true
-    ) {
-      y++;
-    }
-  }
 }
 
 // if change county data
