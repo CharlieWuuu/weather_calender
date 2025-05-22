@@ -8,182 +8,184 @@ const day_list = ['日', '一', '二', '三', '四', '五', '六'];
 
 // main time
 $(function getTime() {
-  let week = now.getDay();
-  let weekZH = '週' + day_list[week];
+    let week = now.getDay();
+    let weekZH = '週' + day_list[week];
 
-  let month = now.getMonth() + 1;
-  let date = now.getDate();
-  let today = month + '/' + date;
+    let month = now.getMonth() + 1;
+    let date = now.getDate();
+    let today = month + '/' + date;
 
-  print = `
+    print = `
 	<h3>${weekZH}</h3>
 	<h3>${today}</h3>
 	`;
-  $('.date_container').html(print);
+    $('.date_container').html(print);
 });
 
 // get geolocation
 var option = {
-  enableAcuracy: false,
-  maximumAge: 0,
-  timeout: 600000,
+    enableAcuracy: false,
+    maximumAge: 0,
+    timeout: 600000,
 };
 navigator.geolocation.getCurrentPosition(successCallback, error);
 function error() {
-  getCwbApi('063', '信義區');
+    getCwbApi('063', '信義區');
 }
 
 // check the client's county & town
 function successCallback(position) {
-  x = position;
-  getLocation =
-    'https://api.nlsc.gov.tw/other/TownVillagePointQuery/' +
-    position.coords.longitude +
-    '/' +
-    position.coords.latitude +
-    '/4326';
-  $.getJSON(getLocation).done(function (clientLocation) {
-    for (c = 0; c < countyApi.length; c++) {
-      if (clientLocation.ctyName == countyApi[c].name) {
-        break;
-      }
+    let lng = position.coords.longitude;
+    let lat = position.coords.latitude;
+
+    if (lng >= 123 || lng <= 118 || lat >= 25 || lat <= 22) {
+        lng = 121.53;
+        lat = 25.03;
     }
-    clientCountyCode = countyApi[c].apiCode;
-    clientLocationTown = clientLocation.townName;
-    getCwbApi(clientCountyCode, clientLocationTown);
-  });
+
+    getLocation = 'https://api.nlsc.gov.tw/other/TownVillagePointQuery/' + lng + '/' + lat + '/4326';
+    $.getJSON(getLocation).done(function (clientLocation) {
+        for (c = 0; c < countyApi.length; c++) {
+            if (clientLocation.ctyName == countyApi[c].name) {
+                break;
+            }
+        }
+        clientCountyCode = countyApi[c].apiCode;
+        clientLocationTown = clientLocation.townName;
+        getCwbApi(clientCountyCode, clientLocationTown);
+    });
 }
 
 // get the weather API
 function getCwbApi(clientCountyCode, clientLocationTown) {
-  $.getJSON(
-    'https://opendata.cwb.gov.tw/api/v1/rest/datastore/F-D0047-093?Authorization=CWB-C67AAE13-37AA-4F9D-892F-E25483690887&locationId=F-D0047-' +
-      clientCountyCode,
-  ).done(function (CWB) {
-    renderCounty(CWB, clientCountyCode, clientLocationTown);
-  });
+    $.getJSON('https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-D0047-093?Authorization=CWB-C67AAE13-37AA-4F9D-892F-E25483690887&locationId=F-D0047-' + clientCountyCode).done(function (CWB) {
+        renderCounty(CWB, clientCountyCode, clientLocationTown);
+    });
 }
 
 // render the county name
 function renderCounty(CWB, clientCountyCode, clientLocationTown) {
-  print = `
-  <option value="${clientCountyCode}">${CWB.records.locations[0].locationsName}</option>
+    print = `
+  <option value="${clientCountyCode}">${CWB.records.Locations[0].LocationsName}</option>
   `;
-  $('#theCountySelect').html(print);
-  AllCounty();
-  changePicture(clientCountyCode);
-  getVillage(CWB, clientLocationTown);
+    $('#theCountySelect').html(print);
+    AllCounty();
+    changePicture(clientCountyCode);
+    getVillage(CWB, clientLocationTown);
 }
 
 // add all options of county
 function AllCounty() {
-  for (i = 0; i < countyApi.length; i++) {
-    arrayCounty = `
+    for (i = 0; i < countyApi.length; i++) {
+        arrayCounty = `
     <option value="${countyApi[i].apiCode}">${countyApi[i].name}</option>`;
-    $('#locationCounty').children().append(arrayCounty);
-    $('#locationCounty option:selected').hide();
-  }
+        $('#locationCounty').children().append(arrayCounty);
+        $('#locationCounty option:selected').hide();
+    }
 }
 
 // change picture
 function changePicture(clientCountyCode) {
-  for (x = 0; x < countyApi.length; x++) {
-    if (countyApi[x].apiCode.includes(clientCountyCode) == true) {
-      break;
+    for (x = 0; x < countyApi.length; x++) {
+        if (countyApi[x].apiCode.includes(clientCountyCode) == true) {
+            break;
+        }
     }
-  }
-  print = `
+    print = `
   <div class="picture" style="background-image: url(${countyApi[x].picture})"></div>
 `;
-  $('.picture_container').html(print);
+    $('.picture_container').html(print);
 }
 
 // get the index of selected village
 function getVillage(CWB, clientLocationTown) {
-  let check = '';
-  for (v = 0; v < CWB.records.locations[0].location.length; v++) {
-    if (
-      clientLocationTown == CWB.records.locations[0].location[v].locationName
-    ) {
-      check = 1;
-      break;
-    } else {
-      check = 0;
+    let check = '';
+    console.log(clientLocationTown);
+
+    for (v = 0; v < CWB.records.Locations[0].Location.length; v++) {
+        if (clientLocationTown == CWB.records.Locations[0].Location[v].LocationName) {
+            check = 1;
+            break;
+        } else {
+            check = 0;
+        }
     }
-  }
-  if (check == 0) {
-    v = 0;
-  }
-  renderVillage(CWB, clientLocationTown, v);
-  renderClimate(CWB, v);
+    if (check == 0) {
+        v = 0;
+    }
+    renderVillage(CWB, clientLocationTown, v);
+    renderClimate(CWB, v);
 }
 
 // render the village name
 function renderVillage(CWB, clientLocationTown, v) {
-  print = `
-  <option value="${clientLocationTown}">${CWB.records.locations[0].location[v].locationName}</option>
+    print = `
+  <option value="${clientLocationTown}">${CWB.records.Locations[0].Location[v].LocationName}</option>
   `;
-  $('#theVillageSelect').html(print);
-  AllVillage(CWB);
+    $('#theVillageSelect').html(print);
+    AllVillage(CWB);
 }
 
 // add all options of village
 function AllVillage(CWB) {
-  for (i = 0; i < CWB.records.locations[0].location.length; i++) {
-    arrayCounty = `
-    <option value="${i}">${CWB.records.locations[0].location[i].locationName}</option>`;
-    $('#locationVillage').children().append(arrayCounty);
-    $('#locationVillage option:selected').hide();
-  }
+    for (i = 0; i < CWB.records.Locations[0].Location.length; i++) {
+        console.log(CWB.records.Locations[0].Location[i].LocationName);
+        arrayCounty = `
+    <option value="${i}">${CWB.records.Locations[0].Location[i].LocationName}</option>`;
+        $('#locationVillage').children().append(arrayCounty);
+        $('#locationVillage option:selected').hide();
+    }
 }
 
 //  render the climate information
 function renderClimate(CWB, v) {
-  T = CWB.records.locations[0].location[v].weatherElement[1];
-  TNow = T.time[0].elementValue[0].value;
+    T = CWB.records.Locations[0].Location[v];
 
-  Wx = CWB.records.locations[0].location[v].weatherElement[6];
-  WxNow = Wx.time[0].elementValue[1].value;
+    TNow = T.WeatherElement[0].Time[0].ElementValue[0].Temperature;
+    console.log(CWB.records.Locations[0].Location[v]);
 
-  weatherSwitch(WxNow);
+    Wx = CWB.records.Locations[0].Location[v].WeatherElement[6];
+    WxNow = Wx.Time[0].ElementValue[0].MinApparentTemperature;
 
-  print = `
-  ${CWB.records.locations[0].location[v].locationName}
+    weatherSwitch(WxNow);
+
+    print = `
+  ${CWB.records.Locations[0].Location[v].LocationsName}
   `;
-  $('#theVillage').html(print);
+    $('#theVillage').html(print);
 
-  print = `
+    print = `
 		<h2>${TNow}°</h2>
     <div class="weatherIcon_container">${weatherIcon}</div>
 		`;
-  $('.weather_container').html(print);
+    $('.weather_container').html(print);
 
-  $('.temperature_line').empty();
+    $('.temperature_line').empty();
 
-  temperatureRange();
+    temperatureRange();
 
-  // week
-  const date1 = new Date(now);
-  deleteFirstDay(); // delete first day information
-  $('.daily_container').empty();
-  $('.temperature').remove();
+    // week
+    const date1 = new Date(now);
+    deleteFirstDay(); // delete first day information
+    $('.daily_container').empty();
+    $('.temperature').remove();
 
-  for (i = 0; i < 5; i++) {
-    date1.setDate(date1.getDate() + 1);
-    let week1 = date1.getDay();
-    let futureWeek = '週' + day_list[week1];
+    for (i = 0; i < 5; i++) {
+        date1.setDate(date1.getDate() + 1);
+        let week1 = date1.getDay();
+        let futureWeek = '週' + day_list[week1];
 
-    let month = date1.getMonth() + 1;
-    let date = date1.getDate();
-    let futureDate = month + '/' + date;
+        let month = date1.getMonth() + 1;
+        let date = date1.getDate();
+        let futureDate = month + '/' + date;
+        console.log(Wx.Time[y + 1 + i * 2]);
+        futureWx = Wx.Time[y + i * 2].ElementValue[0].MinApparentTemperature;
+        futureTempH = T.WeatherElement[1].Time[y + i * 2].ElementValue[0].MaxTemperature;
+        futureTempL = T.WeatherElement[2].Time[y + 1 + i * 2].ElementValue[0].MinTemperature;
 
-    futureWx = Wx.time[y + i * 2].elementValue[1].value;
-    futureTempH = T.time[y + i * 2].elementValue[0].value;
-    futureTempL = T.time[y + 1 + i * 2].elementValue[0].value;
+        weatherSwitch(futureWx);
 
-    weatherSwitch(futureWx);
-
-    print = `
+        print = `
 				<div class="future_container" id="future_container_${i}">
           <p>${futureWeek}</p>
           <p>${futureDate}</p>
@@ -191,11 +193,11 @@ function renderClimate(CWB, v) {
 				</div>
 				`;
 
-    $('.daily_container').append(print);
+        $('.daily_container').append(print);
 
-    LowPosition = 80 - (futureTempL - MinTemp) * distance;
-    HighPosition = 0 + (MaxTemp - futureTempH) * distance;
-    print = `
+        LowPosition = 80 - (futureTempL - MinTemp) * distance;
+        HighPosition = 0 + (MaxTemp - futureTempH) * distance;
+        print = `
     <div class="temperature" id="temperature_${i}">
       <div class="temperatureH" style="top: ${HighPosition}px">
         <p id="futureTempHText">${futureTempH}°</p>
@@ -207,14 +209,14 @@ function renderClimate(CWB, v) {
       </div>
     </div>
     `;
-    $('.temperature_container').append(print);
-  }
+        $('.temperature_container').append(print);
+    }
 }
 
 // add weather icon
 function weatherSwitch(thisWx) {
-  if (thisWx <= 3 || (24 <= thisWx && thisWx <= 25)) {
-    weatherIcon = `<svg class="weatherIcon"
+    if (thisWx <= 3 || (24 <= thisWx && thisWx <= 25)) {
+        weatherIcon = `<svg class="weatherIcon"
     id="IconSun"
     xmlns="http://www.w3.org/2000/svg"
     x="0px"
@@ -230,8 +232,8 @@ function weatherSwitch(thisWx) {
     <line class="line" id="line2" x1="6.7" y1="23.3" x2="4.4" y2="25.6"/>
     <circle class="circle" cx="15.2" cy="15.4" r="8.1"/>
 </svg>`;
-  } else if ((4 <= thisWx && thisWx <= 7) || (26 <= thisWx && thisWx <= 28)) {
-    weatherIcon = `<svg class="weatherIcon"
+    } else if ((4 <= thisWx && thisWx <= 7) || (26 <= thisWx && thisWx <= 28)) {
+        weatherIcon = `<svg class="weatherIcon"
       id="IconCloud"
       xmlns="http://www.w3.org/2000/svg"
       x="0px"
@@ -241,8 +243,8 @@ function weatherSwitch(thisWx) {
         c-3.5,1.4-7.6-0.3-9-3.9s0.3-7.6,3.9-9C4.9,8.3,4.9,7.9,4.9,7.5c0-3.8,3.1-6.9,6.9-6.9c1.9,0,3.7,0.8,5,2.2
         c1-0.6,2.2-0.9,3.4-0.9c3.8,0,6.9,3.1,6.9,6.9l0,0c0,0.1,0,0.2,0,0.3C29.3,10.3,30.6,12.6,30.6,15.1z" />
     </svg>`;
-  } else {
-    weatherIcon = `<svg class="weatherIcon"
+    } else {
+        weatherIcon = `<svg class="weatherIcon"
       id="IconRain"
       xmlns="http://www.w3.org/2000/svg"
       x="0px"
@@ -256,62 +258,55 @@ function weatherSwitch(thisWx) {
       <line class="line" id="line2" x1="14.9" y1="24.7" x2="12.5" y2="28.2"/>
       <line class="line" id="line3" x1="23.6" y1="22.5" x2="21.2" y2="26"/>
     </svg>`;
-  }
+    }
 }
 
 // get the max and min temperature of next five days
 function temperatureRange() {
-  deleteFirstDay();
-  const MaxTempArray = [];
-  const MinTempArray = [];
-  for (i = 0; i < 5; i++) {
-    futureTempH = T.time[y + i * 2].elementValue[0].value;
-    MaxTempArray.push(futureTempH);
-    futureTempL = T.time[y + 1 + i * 2].elementValue[0].value;
-    MinTempArray.push(futureTempL);
-  }
+    deleteFirstDay();
+    const MaxTempArray = [];
+    const MinTempArray = [];
+    for (i = 0; i < 5; i++) {
+        futureTempH = T.WeatherElement[1].Time[y + i * 2].ElementValue[0].MaxTemperature;
+        MaxTempArray.push(futureTempH);
+        futureTempL = T.WeatherElement[2].Time[y + 1 + i * 2].ElementValue[0].MinTemperature;
+        MinTempArray.push(futureTempL);
+    }
 
-  MaxTemp = Math.max(...MaxTempArray);
-  MinTemp = Math.min(...MinTempArray); // standard of line
-  distance = 70 / (MaxTemp - MinTemp); // get the class interval
+    MaxTemp = Math.max(...MaxTempArray);
+    MinTemp = Math.min(...MinTempArray); // standard of line
+    distance = 70 / (MaxTemp - MinTemp); // get the class interval
 
-  SVGline(MaxTempArray, MinTempArray, MaxTemp, MinTemp, distance);
+    SVGline(MaxTempArray, MinTempArray, MaxTemp, MinTemp, distance);
 }
 
 // delete first day information
 function deleteFirstDay() {
-  y = 0;
-  for (x = 0; x < 5; x++) {
-    WxNowStartTime = Wx.time[x].startTime;
-    let todayDate =
-      now.getFullYear() +
-      '-' +
-      ('0' + (now.getMonth() + 1)).slice(-2) +
-      '-' +
-      ('0' + now.getDate()).slice(-2);
-    if (
-      JSON.stringify(WxNowStartTime).includes(todayDate) == true ||
-      JSON.stringify(WxNowStartTime).includes('00:00:00') == true
-    ) {
-      y++;
+    y = 0;
+    for (x = 0; x < 5; x++) {
+        WxNowStartTime = Wx.Time[x].StartTime;
+        let todayDate = now.getFullYear() + '-' + ('0' + (now.getMonth() + 1)).slice(-2) + '-' + ('0' + now.getDate()).slice(-2);
+
+        if (JSON.stringify(WxNowStartTime).includes(todayDate) == true || JSON.stringify(WxNowStartTime).includes('00:00:00') == true) {
+            y++;
+        }
     }
-  }
 }
 
 // render the number line of temperature
 function SVGline(MaxTempArray, MinTempArray, MaxTemp, MinTemp, distance) {
-  HighP1 = 18 + (MaxTemp - MaxTempArray[0]) * distance;
-  HighP2 = 18 + (MaxTemp - MaxTempArray[1]) * distance;
-  HighP3 = 18 + (MaxTemp - MaxTempArray[2]) * distance;
-  HighP4 = 18 + (MaxTemp - MaxTempArray[3]) * distance;
-  HighP5 = 18 + (MaxTemp - MaxTempArray[4]) * distance;
+    HighP1 = 18 + (MaxTemp - MaxTempArray[0]) * distance;
+    HighP2 = 18 + (MaxTemp - MaxTempArray[1]) * distance;
+    HighP3 = 18 + (MaxTemp - MaxTempArray[2]) * distance;
+    HighP4 = 18 + (MaxTemp - MaxTempArray[3]) * distance;
+    HighP5 = 18 + (MaxTemp - MaxTempArray[4]) * distance;
 
-  LowP1 = 82 - (MinTempArray[0] - MinTemp) * distance;
-  LowP2 = 82 - (MinTempArray[1] - MinTemp) * distance;
-  LowP3 = 82 - (MinTempArray[2] - MinTemp) * distance;
-  LowP4 = 82 - (MinTempArray[3] - MinTemp) * distance;
-  LowP5 = 82 - (MinTempArray[4] - MinTemp) * distance;
-  print = `
+    LowP1 = 82 - (MinTempArray[0] - MinTemp) * distance;
+    LowP2 = 82 - (MinTempArray[1] - MinTemp) * distance;
+    LowP3 = 82 - (MinTempArray[2] - MinTemp) * distance;
+    LowP4 = 82 - (MinTempArray[3] - MinTemp) * distance;
+    LowP5 = 82 - (MinTempArray[4] - MinTemp) * distance;
+    print = `
   <svg id="SVGlineH" width="100%" height="100%" viewBox="0 0 200 100" preserveAspectRatio="none">
     <path
     d="M0 ${HighP1} C25 ${HighP1},
@@ -332,24 +327,27 @@ function SVGline(MaxTempArray, MinTempArray, MaxTemp, MinTemp, distance) {
     175 ${LowP5} ,200,${LowP5}"
     ></path>
   </svg>`;
-  $('.temperature_line').append(print);
+    $('.temperature_line').append(print);
 }
 
 // if change county data
 $('#theCountySelect').change(function changeCounty() {
-  clientCountyCode = $('#theCountySelect').val();
-  clientLocationTown = '';
-  getCwbApi(clientCountyCode, clientLocationTown);
+    clientCountyCode = $('#theCountySelect').val();
+    clientLocationTown = '';
+
+    getCwbApi(clientCountyCode, clientLocationTown);
 });
 
 // if change village data
 $('#theVillageSelect').change(function changeVillage() {
-  clientCountyCode = $('#theCountySelect').val();
-  VillageValue = $('#theVillageSelect option:selected').text();
-  getCwbApi(clientCountyCode, VillageValue);
+    clientCountyCode = $('#theCountySelect').val();
+
+    VillageValue = $('#theVillageSelect option:selected').text();
+    console.log(VillageValue);
+    getCwbApi(clientCountyCode, VillageValue);
 });
 
 // when click picture
 $('.picture_container').click(function () {
-  $('.card').toggleClass('active');
+    $('.card').toggleClass('active');
 });
