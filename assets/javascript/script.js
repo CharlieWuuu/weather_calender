@@ -65,22 +65,21 @@ function getCwbApi(clientCountyCode, clientLocationTown) {
 
 // render the county name
 function renderCounty(CWB, clientCountyCode, clientLocationTown) {
-    print = `
-  <option value="${clientCountyCode}">${CWB.records.Locations[0].LocationsName}</option>
-  `;
-    $('#theCountySelect').html(print);
-    AllCounty();
+    AllCounty(CWB);
     changePicture(clientCountyCode);
     getVillage(CWB, clientLocationTown);
 }
 
 // add all options of county
-function AllCounty() {
+function AllCounty(CWB) {
     for (i = 0; i < countyApi.length; i++) {
-        arrayCounty = `
-    <option value="${countyApi[i].apiCode}">${countyApi[i].name}</option>`;
+        let selected = '';
+        if (CWB.records.Locations[0].LocationsName == countyApi[i].name) {
+            selected = 'selected';
+        }
+
+        arrayCounty = `<option value="${countyApi[i].apiCode}" ${selected}>${countyApi[i].name}</option>`;
         $('#locationCounty').children().append(arrayCounty);
-        $('#locationCounty option:selected').hide();
     }
 }
 
@@ -100,7 +99,6 @@ function changePicture(clientCountyCode) {
 // get the index of selected village
 function getVillage(CWB, clientLocationTown) {
     let check = '';
-    console.log(clientLocationTown);
 
     for (v = 0; v < CWB.records.Locations[0].Location.length; v++) {
         if (clientLocationTown == CWB.records.Locations[0].Location[v].LocationName) {
@@ -119,21 +117,21 @@ function getVillage(CWB, clientLocationTown) {
 
 // render the village name
 function renderVillage(CWB, clientLocationTown, v) {
-    print = `
-  <option value="${clientLocationTown}">${CWB.records.Locations[0].Location[v].LocationName}</option>
-  `;
     $('#theVillageSelect').html(print);
-    AllVillage(CWB);
+    AllVillage(CWB, clientLocationTown);
 }
 
 // add all options of village
-function AllVillage(CWB) {
+function AllVillage(CWB, clientLocationTown) {
     for (i = 0; i < CWB.records.Locations[0].Location.length; i++) {
-        console.log(CWB.records.Locations[0].Location[i].LocationName);
+        let selected = '';
+        console.log(clientLocationTown == CWB.records.Locations[0].Location[i].LocationName);
+        if (clientLocationTown == CWB.records.Locations[0].Location[i].LocationName) {
+            selected = 'selected';
+        }
         arrayCounty = `
-    <option value="${i}">${CWB.records.Locations[0].Location[i].LocationName}</option>`;
+    <option value="${i}" ${selected}>${CWB.records.Locations[0].Location[i].LocationName}</option>`;
         $('#locationVillage').children().append(arrayCounty);
-        $('#locationVillage option:selected').hide();
     }
 }
 
@@ -142,7 +140,6 @@ function renderClimate(CWB, v) {
     T = CWB.records.Locations[0].Location[v];
 
     TNow = T.WeatherElement[0].Time[0].ElementValue[0].Temperature;
-    console.log(CWB.records.Locations[0].Location[v]);
 
     Wx = CWB.records.Locations[0].Location[v].WeatherElement[6];
     WxNow = Wx.Time[0].ElementValue[0].MinApparentTemperature;
@@ -178,7 +175,7 @@ function renderClimate(CWB, v) {
         let month = date1.getMonth() + 1;
         let date = date1.getDate();
         let futureDate = month + '/' + date;
-        console.log(Wx.Time[y + 1 + i * 2]);
+
         futureWx = Wx.Time[y + i * 2].ElementValue[0].MinApparentTemperature;
         futureTempH = T.WeatherElement[1].Time[y + i * 2].ElementValue[0].MaxTemperature;
         futureTempL = T.WeatherElement[2].Time[y + 1 + i * 2].ElementValue[0].MinTemperature;
@@ -343,7 +340,7 @@ $('#theVillageSelect').change(function changeVillage() {
     clientCountyCode = $('#theCountySelect').val();
 
     VillageValue = $('#theVillageSelect option:selected').text();
-    console.log(VillageValue);
+
     getCwbApi(clientCountyCode, VillageValue);
 });
 
